@@ -17,7 +17,7 @@ implicit none
 
 private :: fckit_owned_object
 
-public :: atlas_FieldSet
+public :: atlas_FieldSet, atlas_FieldSet_registry
 
 private
 
@@ -64,11 +64,24 @@ interface atlas_FieldSet
 end interface
 
 !------------------------------------------------------------------------------
+#define LISTED_TYPE atlas_FieldSet
+
+! Linked list interface - defines registry_t type
+#include "atlas_f/internals/atlas_linkedList_i.f"
+
+! Global registry
+type(registry_t) :: atlas_FieldSet_registry
+
+!------------------------------------------------------------------------------
 
 
 !========================================================
 contains
 !========================================================
+! -----------------------------------------------------------------------------
+! Linked list implementation
+#include "atlas_f/internals/atlas_linkedList_c.f"
+
 ! -----------------------------------------------------------------------------
 ! FieldSet routines
 

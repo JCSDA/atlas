@@ -25,7 +25,8 @@ use atlas_Field_module, only: &
 use atlas_FunctionSpace_module, only: &
     & atlas_FunctionSpace
 use atlas_FieldSet_module, only: &
-    & atlas_FieldSet
+    & atlas_FieldSet, &
+    & atlas_FieldSet_registry
 use atlas_State_module, only: &
     & atlas_State
 use atlas_JSON_module, only: &
