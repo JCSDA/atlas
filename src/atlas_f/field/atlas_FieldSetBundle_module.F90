@@ -12,7 +12,7 @@ implicit none
 
 type atlas_FieldSetBundle
    type(atlas_FieldSet) :: fs
-   type(atlas_FieldSet),pointer :: ptr
+   type(atlas_FieldSet),pointer :: ptr => null()
 end type atlas_FieldSetBundle
 
 private
