@@ -64,6 +64,8 @@ option/TransOptions.cc
 projection.h
 projection/Projection.cc
 projection/Projection.h
+projection/detail/CubedSphereProjection.cc
+projection/detail/CubedSphereProjection.h
 projection/detail/LambertAzimuthalEqualAreaProjection.cc
 projection/detail/LambertAzimuthalEqualAreaProjection.h
 projection/detail/LambertProjection.cc
