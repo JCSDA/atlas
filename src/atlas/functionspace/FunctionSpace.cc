@@ -11,6 +11,7 @@
 
 #include "atlas/functionspace/FunctionSpace.h"
 #include "atlas/field/Field.h"
+#include "atlas/runtime/Exception.h"
 #include "atlas/functionspace/detail/FunctionSpaceImpl.h"
 
 namespace atlas {
@@ -64,6 +65,10 @@ void FunctionSpace::haloExchange( const FieldSet& fields, bool on_device ) const
 
 const util::PartitionPolygon& FunctionSpace::polygon( idx_t halo ) const {
     return get()->polygon( halo );
+}
+
+const std::vector<util::PartitionPolygon>& FunctionSpace::polygons() const {
+    ATLAS_NOTIMPLEMENTED;
 }
 
 template <typename DATATYPE>
