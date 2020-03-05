@@ -183,7 +183,7 @@ void Method::setup( const FunctionSpace& source, const FunctionSpace& target ) {
         polygons.emplace_back( *poly );
     }
 
-    ASSERT( polygons.size() == size_t( mpi::size() ) );
+    ASSERT( polygons.size() == size_t( ntasks ) );
 
 
     // Distribute points to partitions, querying k-d tree for closest partition
@@ -204,7 +204,7 @@ void Method::setup( const FunctionSpace& source, const FunctionSpace& target ) {
         bool found = false;
         for ( auto& n : search.kNearestNeighbours( p, k ) ) {
             auto rank = n.payload();
-            ASSERT( rank < size_t( mpi::size() ) );
+            ASSERT( rank < size_t( ntasks ) );
 
             if ( ( found = polygons[rank].contains( pll ) ) ) {
                 sendpoints[rank].push_back(pll[LON]);
@@ -220,39 +220,25 @@ void Method::setup( const FunctionSpace& source, const FunctionSpace& target ) {
         }
     }
 
-    for ( int rank = 0; rank < mpi::size(); ++rank ) {
-        mpi::comm().barrier();
-        if ( rank == mpi::rank() ) {
-            Log::info() << "--- before distribution"
-                           "\nrank="
-                        << rank << std::endl;
-            for ( int ip = 0; ip < target.size(); ++ip ) {
-                Log::info() << Point2{lonlat( ip, LON ), lonlat( ip, LAT )} << std::endl;
-            }
-            Log::info() << "---" << std::endl;
-        }
-    }
-
-
 //  Exchange locations of target points
     std::vector< std::vector<double> > recvpoints(ntasks);
     atlas::mpi::comm().allToAll(sendpoints, recvpoints);
 
 //  Create PointCloud of target points with matching distribution
-    std::vector< PointXY > localTargetPoints;
+    std::vector< PointXY > localOutPoints;
     for (size_t jtask = 0; jtask < ntasks; ++jtask) {
-      size_t npts = (recvpoints[jtask].size() + 1) / 2;
-      ASSERT( npts * 2 == recvpoints[jtask].size() + 1 );
+      size_t npts = recvpoints[jtask].size() / 2;
+      ASSERT( recvpoints[jtask].size() == 2 * npts );
       for (size_t jpt = 0; jpt < npts; jpt += 2) {
-        localTargetPoints.emplace_back(
-          PointXY( sendpoints[jtask][jpt+LON], sendpoints[jtask][jpt+LAT] )
+        localOutPoints.emplace_back(
+          PointXY( recvpoints[jtask][jpt+LON], recvpoints[jtask][jpt+LAT] )
         );
       }
     }
-    functionspace::PointCloud localtarget(localTargetPoints);
+    localTargetPoints_.reset(new functionspace::PointCloud(localOutPoints));
 
 //  Call interpolation setup with local target points
-    this->do_setup( source, localtarget );
+    this->do_setup( source, *localTargetPoints_ );
 }
 
 void Method::setup( const Grid& source, const Grid& target ) {
@@ -272,12 +258,27 @@ void Method::setup( const FunctionSpace& source, const FieldSet& target ) {
 
 void Method::execute( const FieldSet& source, FieldSet& target ) const {
     ATLAS_TRACE( "atlas::interpolation::method::Method::execute(FieldSet, FieldSet)" );
-    this->do_execute( source, target );
+    if (localTargetPoints_) {
+      ATLAS_NOTIMPLEMENTED;
+//      Field localout = localTargetPoints_->createField<double>(???);
+//      this->do_execute( source, localout );
+//      
+//      size_t ntasks = atlas::mpi::comm().size();
+//      std::vector< std::vector<double> > sendbuf(ntasks);
+//      auto view = array::make_view<double>( localout );
+//
+    } else {
+      this->do_execute( source, target );
+    }
 }
 
 void Method::execute( const Field& source, Field& target ) const {
     ATLAS_TRACE( "atlas::interpolation::method::Method::execute(Field, Field)" );
-    this->do_execute( source, target );
+    if (localTargetPoints_) {
+      ATLAS_NOTIMPLEMENTED;
+    } else {
+      this->do_execute( source, target );
+    }
 }
 
 void Method::do_setup( const FunctionSpace& /*source*/, const Field& /*target*/ ) {
