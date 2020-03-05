@@ -167,7 +167,7 @@ public:
     operator bool() const { return valid(); }
     bool valid() const { return functionspace_; }
 
-    const Field& lonlat() const { return functionspace_->lonlat(); }
+    Field lonlat() const { return functionspace_->lonlat(); }
     const Field& vertical() const { return functionspace_->vertical(); }
     const Field& ghost() const { return functionspace_->ghost(); }
 
