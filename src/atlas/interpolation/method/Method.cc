@@ -21,7 +21,9 @@
 #include "atlas/field/Field.h"
 #include "atlas/field/FieldSet.h"
 #include "atlas/functionspace/NodeColumns.h"
+#include "atlas/interpolation/method/PointIndex3.h"
 #include "atlas/mesh/Nodes.h"
+#include "atlas/parallel/mpi/mpi.h"
 #include "atlas/runtime/Exception.h"
 #include "atlas/runtime/Log.h"
 #include "atlas/runtime/Trace.h"
@@ -154,6 +156,28 @@ Method::Method( const Method::Config& config ) {
 
 void Method::setup( const FunctionSpace& source, const FunctionSpace& target ) {
     ATLAS_TRACE( "atlas::interpolation::method::Method::setup(FunctionSpace, FunctionSpace)" );
+
+    using interpolation::method::PointIndex3;
+    PointIndex3 polygonTree;
+
+    auto polys = source.polygons();
+    ASSERT(polys.size() == mpi::size());
+
+    size_t rank = 0;
+    for ( auto& poly : polys ) {
+        ASSERT(!poly->empty());
+
+        Point3 centre;
+        for ( auto& pll : poly->lonlat() ) {
+            Point3 pxyz;
+            util::Earth::convertSphericalToCartesian(pll, pxyz);
+            centre = Point3::add( centre, pxyz );
+        }
+        centre = Point3::div(centre, poly->size());
+
+        polygonTree.insert({centre, rank++});
+    }
+
     this->do_setup(source, target);
 }
 
