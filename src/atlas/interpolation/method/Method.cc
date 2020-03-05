@@ -220,6 +220,20 @@ void Method::setup( const FunctionSpace& source, const FunctionSpace& target ) {
         }
     }
 
+    for ( int rank = 0; rank < mpi::size(); ++rank ) {
+        if ( rank == mpi::rank() ) {
+            mpi::comm().barrier();
+            Log::info() << "--- before distribution"
+                           "\nrank="
+                        << rank << std::endl;
+            for ( int ip = 0; ip < target.size(); ++ip ) {
+                Log::info() << Point2{lonlat( ip, LON ), lonlat( ip, LAT )} << std::endl;
+            }
+            Log::info() << "---" << std::endl;
+        }
+    }
+
+
 //  Exchange locations of target points
     std::vector< std::vector<double> > recvpoints(ntasks);
     atlas::mpi::comm().allToAll(sendpoints, recvpoints);
