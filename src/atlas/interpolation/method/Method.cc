@@ -154,6 +154,20 @@ Method::Method( const Method::Config& config ) {
 
 void Method::setup( const FunctionSpace& source, const FunctionSpace& target ) {
     ATLAS_TRACE( "atlas::interpolation::method::Method::setup(FunctionSpace, FunctionSpace)" );
+
+    auto lonlat = array::make_view<double, 2>(target.lonlat());
+
+    util::LonLatPolygon poly(source.polygon());
+    for ( idx_t j = 0, size = lonlat.shape[0]; j < size; ++j ) {
+        point = PointLonLat( lonlat(j,0), lonlat(j,1) );
+        if (poly.contains(point)) {
+        }
+    }
+
+//    MatchingPartitioner inputPartition( source );
+    
+    PointCloud myLocalPoints();
+
     this->do_setup(source, target);
 }
 

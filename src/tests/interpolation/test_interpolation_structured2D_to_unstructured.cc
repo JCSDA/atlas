@@ -161,15 +161,15 @@ CASE( "test_nomatch" ) {
 
     FunctionSpace output_fs = output_functionspace_nomatch();
 
-    if ( false )  // expected to throw
-    {
+//    if ( false )  // expected to throw
+//    {
         Interpolation interpolation( option::type( "structured-linear2D" ), input_fs, output_fs );
 
         FieldSet fields_source = create_source_fields( input_fs, nb_fields, nb_levels );
         FieldSet fields_target = create_target_fields( output_fs, nb_fields, nb_levels );
 
         interpolation.execute( fields_source, fields_target );
-    }
+//    }
 }
 
 
