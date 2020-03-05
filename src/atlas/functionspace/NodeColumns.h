@@ -258,6 +258,8 @@ public:
 
     idx_t nb_partitions() const override { return mesh_.nb_partitions(); }
 
+    Field lonlat() const override {return nodes_.lonlat();}
+
 private:  // methods
     void constructor();
 

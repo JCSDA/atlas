@@ -129,6 +129,7 @@ public:
         return ij2gp_( i, j );
     }
 
+    Field lonlat() const { return field_xy_; }
     Field xy() const { return field_xy_; }
     Field z() const { return vertical().z(); }
     Field partition() const { return field_partition_; }

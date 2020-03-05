@@ -59,6 +59,10 @@ idx_t FunctionSpace::nb_partitions() const {
     return get()->nb_partitions();
 }
 
+Field FunctionSpace::lonlat() const {
+    return get()->lonlat();
+}
+
 void FunctionSpace::haloExchange( const FieldSet& fields, bool on_device ) const {
     return get()->haloExchange( fields, on_device );
 }

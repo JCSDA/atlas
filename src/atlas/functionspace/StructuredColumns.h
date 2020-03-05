@@ -77,6 +77,7 @@ public:
     idx_t k_end() const { return functionspace_->k_end(); }
 
     Field xy() const { return functionspace_->xy(); }
+    Field lonlat() const override { return functionspace_->lonlat(); }
     Field partition() const { return functionspace_->partition(); }
     Field global_index() const { return functionspace_->global_index(); }
     Field remote_index() const { return functionspace_->remote_index(); }

@@ -178,6 +178,8 @@ void Method::setup( const FunctionSpace& source, const FunctionSpace& target ) {
         polygonTree.insert({centre, rank++});
     }
 
+    auto lonlat = array::make_view<double, 2>(target.lonlat());
+
     this->do_setup(source, target);
 }
 
