@@ -158,72 +158,60 @@ Method::Method( const Method::Config& config ) {
 void Method::setup( const FunctionSpace& source, const FunctionSpace& target ) {
     ATLAS_TRACE( "atlas::interpolation::method::Method::setup(FunctionSpace, FunctionSpace)" );
 
-    using interpolation::method::PointIndex3;
-    PointIndex3 polygonTree;
 
+    // Construct k-d tree with partition centroids
+    // FIXME the LonLatPolygon choice should come from the method
+    interpolation::method::PointIndex3 search;
+    std::vector<util::LonLatPolygon> polygons;
 
-    // construct partition polygons
-    auto polys = source.polygons();
-    ASSERT( polys.size() == mpi::size() );
-
-
-    // build partition centroids k-d tree
     size_t rank = 0;
-    for ( auto& poly : polys ) {
+    for ( auto& poly : source.polygons() ) {
         ASSERT( !poly->empty() );
 
-        Point3 centre;
+        Point3 c{0, 0, 0};
         for ( auto& pll : poly->lonlat() ) {
-            Point3 pxyz;
-            util::Earth::convertSphericalToCartesian( pll, pxyz );
-            centre = Point3::add( centre, pxyz );
+            Point3 p;
+            util::Earth::convertSphericalToCartesian( pll, p );
+            c = Point3::add( c, p );
         }
-        centre = Point3::div( centre, poly->size() );
+        c = Point3::div( c, poly->size() );
 
-        polygonTree.insert( {centre, rank++} );
+        search.insert( {c, rank++} );
+        polygons.emplace_back( *poly );
     }
 
+    ASSERT( int( polygons.size() ) == mpi::size() );
 
-    // search for containing partition
+
+    // search for points in partition, querying the k-d tree to get the closest
+    // partition (by centroid), sorted in order of distance
+    // FIXME make k configurable
+    std::vector<std::vector<Point2> > pointsPerPartition( mpi::size() );
 
     auto lonlat = array::make_view<double, 2>( target.lonlat() );
+    size_t k    = 4;  // k-nearest neighbours
+    ASSERT( k > 0 );
 
-    size_t k = 4;  // k-nearest neighbours
+    for ( int ip = 0; ip < target.size(); ++ip ) {
+        Point2 pll{lonlat( ip, LON ), lonlat( ip, LAT )};
 
+        Point3 p;
+        util::Earth::convertSphericalToCartesian( pll, p );
 
-    std::vector<util::LonLatPolygon> polysLL;
-    for ( auto& poly : polys ) {
-        polysLL.emplace_back( *poly );
-    }
-
-
-    // find the closest input point to the output point
-    for ( size_t ip = 0; ip < target.size(); ++ip ) {
-        Point3 pxyz;
-        PointLonLat pll{lonlat( ip, (size_t)0 ), lonlat( ip, (size_t)1 )};
-        util::Earth::convertSphericalToCartesian( pll, pxyz );
-
-        auto nn = polygonTree.kNearestNeighbours( pxyz, k );
-        ASSERT( !nn.empty() );
-
-        std::vector<std::vector<Point2> > pointsPerPartition( mpi::size() );
-        for ( auto& n : nn ) {
+        bool found = false;
+        for ( auto& n : search.kNearestNeighbours( p, k ) ) {
             auto rank = n.payload();
-            bool found = false;
-            if ( ( found = polysLL[rank].contains( pll ) ) ) {
-                pointsPerPartition[rank].emplace_back(pll);
+            if ( ( found = polygons[rank].contains( pll ) ) ) {
+                pointsPerPartition[rank].emplace_back( pll );
                 break;
             }
-            ASSERT(found);  // on failure, increase k?
         }
-    }
 
-
-
-
-    // cleanup
-    for ( auto& poly : polys ) {
-        delete poly;
+        if ( !found ) {
+            std::ostringstream ss;
+            ss << "No partition contains " << pll << ", is k=" << k << " too low?";
+            throw_AssertionFailed( ss.str(), Here() );
+        }
     }
 
 
