@@ -221,8 +221,8 @@ void Method::setup( const FunctionSpace& source, const FunctionSpace& target ) {
     }
 
     for ( int rank = 0; rank < mpi::size(); ++rank ) {
+        mpi::comm().barrier();
         if ( rank == mpi::rank() ) {
-            mpi::comm().barrier();
             Log::info() << "--- before distribution"
                            "\nrank="
                         << rank << std::endl;
