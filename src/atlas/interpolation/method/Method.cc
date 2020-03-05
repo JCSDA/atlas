@@ -169,7 +169,7 @@ void Method::setup( const FunctionSpace& source, const FunctionSpace& target ) {
         ASSERT( !poly->empty() );
 
         Point3 c{0, 0, 0};
-        for ( auto& pll : poly->lonlat() ) {
+        for ( const Point2& pll : poly->lonlat() ) {
             Point3 p;
             util::Earth::convertSphericalToCartesian( pll, p );
             c = Point3::add( c, p );
@@ -180,11 +180,11 @@ void Method::setup( const FunctionSpace& source, const FunctionSpace& target ) {
         polygons.emplace_back( *poly );
     }
 
-    ASSERT( int( polygons.size() ) == mpi::size() );
+    ASSERT( polygons.size() == size_t( mpi::size() ) );
 
 
-    // search for points in partition, querying the k-d tree to get the closest
-    // partition (by centroid), sorted in order of distance
+    // Distribute points to partitions, querying k-d tree for closest partition
+    // sorted by distance to centroid
     // FIXME make k configurable
     std::vector<std::vector<Point2> > pointsPerPartition( mpi::size() );
 
@@ -201,6 +201,8 @@ void Method::setup( const FunctionSpace& source, const FunctionSpace& target ) {
         bool found = false;
         for ( auto& n : search.kNearestNeighbours( p, k ) ) {
             auto rank = n.payload();
+            ASSERT( rank < size_t( mpi::size() ) );
+
             if ( ( found = polygons[rank].contains( pll ) ) ) {
                 pointsPerPartition[rank].emplace_back( pll );
                 break;
