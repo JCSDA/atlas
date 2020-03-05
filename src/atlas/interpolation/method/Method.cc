@@ -21,6 +21,7 @@
 #include "atlas/field/Field.h"
 #include "atlas/field/FieldSet.h"
 #include "atlas/functionspace/NodeColumns.h"
+#include "atlas/functionspace/PointCloud.h"
 #include "atlas/interpolation/method/PointIndex3.h"
 #include "atlas/mesh/Nodes.h"
 #include "atlas/parallel/mpi/mpi.h"
@@ -28,6 +29,7 @@
 #include "atlas/runtime/Log.h"
 #include "atlas/runtime/Trace.h"
 #include "atlas/util/LonLatPolygon.h"
+#include "atlas/util/Point.h"
 
 namespace atlas {
 namespace interpolation {
@@ -216,8 +218,33 @@ void Method::setup( const FunctionSpace& source, const FunctionSpace& target ) {
         }
     }
 
+// to be moved in loop above
+    size_t ntasks = atlas::mpi::comm().size();
 
-    this->do_setup( source, target );
+    std::vector< std::vector<double> > sendpoints(ntasks);
+    for (size_t jtask = 0; jtask < ntasks; ++jtask) {
+      for (size_t jpt = 0; jpt < pointsPerPartition[jtask].size(); ++jpt) {
+        sendpoints[jtask].push_back(pointsPerPartition[jtask][jpt][0]);
+        sendpoints[jtask].push_back(pointsPerPartition[jtask][jpt][1]);
+      }
+    }
+
+    std::vector< std::vector<double> > recvpoints(ntasks);
+    atlas::mpi::comm().allToAll(sendpoints, recvpoints);
+
+    std::vector< PointXY > localTargetPoints;
+    for (size_t jtask = 0; jtask < ntasks; ++jtask) {
+      size_t npts = (recvpoints[jtask].size() + 1) / 2;
+      ASSERT( npts * 2 == recvpoints[jtask].size() + 1 );
+      for (size_t jpt = 0; jpt < npts; jpt += 2) {
+        localTargetPoints.emplace_back(
+          PointXY( sendpoints[jtask][jpt], sendpoints[jtask][jpt+1] )
+        );
+      }
+    }
+    functionspace::PointCloud localtarget(localTargetPoints);
+
+    this->do_setup( source, localtarget );
 }
 
 void Method::setup( const Grid& source, const Grid& target ) {
