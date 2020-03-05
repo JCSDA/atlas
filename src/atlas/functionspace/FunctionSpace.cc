@@ -72,7 +72,7 @@ const util::PartitionPolygon& FunctionSpace::polygon( idx_t halo ) const {
 }
 
 const std::vector<util::PartitionPolygon*>& FunctionSpace::polygons() const {
-    ATLAS_NOTIMPLEMENTED;
+    return get()->polygons();
 }
 
 template <typename DATATYPE>

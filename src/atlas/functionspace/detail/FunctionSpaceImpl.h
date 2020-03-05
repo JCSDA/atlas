@@ -80,6 +80,8 @@ public:
 
     virtual atlas::Field lonlat() const;
 
+    virtual const std::vector<util::PartitionPolygon*>& polygons() const;
+
 private:
     util::Metadata* metadata_;
 };

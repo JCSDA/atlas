@@ -53,6 +53,10 @@ Field FunctionSpaceImpl::lonlat() const {
     ATLAS_NOTIMPLEMENTED;
 }
 
+const std::vector<util::PartitionPolygon*>& FunctionSpaceImpl::polygons() const {
+    throw_Exception( "polygons() not implemented in derived class", Here() );
+}
+
 template <typename DATATYPE>
 Field FunctionSpaceImpl::createField( const eckit::Configuration& options ) const {
     return createField( option::datatypeT<DATATYPE>() | options );
