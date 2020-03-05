@@ -17,6 +17,7 @@
 #include "atlas/grid/Grid.h"
 #include "atlas/grid/Iterator.h"
 #include "atlas/interpolation.h"
+#include "atlas/interpolation/method/PointIndex3.h"
 #include "atlas/mesh/Mesh.h"
 #include "atlas/meshgenerator.h"
 #include "atlas/output/Gmsh.h"
@@ -165,11 +166,32 @@ CASE( "test_nomatch" ) {
     {
         Interpolation interpolation( option::type( "structured-linear2D" ), input_fs, output_fs );
 
+        using interpolation::method::PointIndex3;
+        PointIndex3 polygonTree;
+
         FieldSet fields_source = create_source_fields( input_fs, nb_fields, nb_levels );
         FieldSet fields_target = create_target_fields( output_fs, nb_fields, nb_levels );
 
         auto polys = input_fs.polygons();
         ASSERT(polys.size() == mpi::size());
+
+
+        size_t rank = 0;
+        for ( auto& poly : polys ) {
+            ASSERT(!poly->empty());
+
+            Point3 centre;
+            for ( auto& pll : poly->lonlat() ) {
+                Point3 pxyz;
+                util::Earth::convertSphericalToCartesian(pll, pxyz);
+                centre = Point3::add( centre, pxyz );
+            }
+            centre = Point3::div(centre, poly->size());
+
+            polygonTree.insert({centre, rank++});
+        }
+
+
 
 
 
