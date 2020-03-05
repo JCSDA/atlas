@@ -139,6 +139,8 @@ public:
     const Point2& coordinatesMax() const;
     const Point2& coordinatesMin() const;
 
+    const std::vector<Point2>& lonlat() { return coordinates_; }
+
 protected:
     // -- Members
 

@@ -27,6 +27,7 @@
 #include "atlas/runtime/Exception.h"
 #include "atlas/runtime/Log.h"
 #include "atlas/runtime/Trace.h"
+#include "atlas/util/LonLatPolygon.h"
 
 namespace atlas {
 namespace interpolation {
@@ -71,7 +72,7 @@ void Method::interpolate_field_rank1( const Field& src, Field& tgt ) const {
         ATLAS_ASSERT( src.contiguous() );
         ATLAS_ASSERT( tgt.contiguous() );
 
-        eckit::linalg::Vector v_src( const_cast<double*>(array::make_view<double, 1>( src ).data()), src.shape( 0 ) );
+        eckit::linalg::Vector v_src( const_cast<double*>( array::make_view<double, 1>( src ).data() ), src.shape( 0 ) );
         eckit::linalg::Vector v_tgt( array::make_view<double, 1>( tgt ).data(), tgt.shape( 0 ) );
         eckit::linalg::LinearAlgebra::backend().spmv( matrix_, v_src, v_tgt );
     }
@@ -160,52 +161,98 @@ void Method::setup( const FunctionSpace& source, const FunctionSpace& target ) {
     using interpolation::method::PointIndex3;
     PointIndex3 polygonTree;
 
-    auto polys = source.polygons();
-    ASSERT(polys.size() == mpi::size());
 
+    // construct partition polygons
+    auto polys = source.polygons();
+    ASSERT( polys.size() == mpi::size() );
+
+
+    // build partition centroids k-d tree
     size_t rank = 0;
     for ( auto& poly : polys ) {
-        ASSERT(!poly->empty());
+        ASSERT( !poly->empty() );
 
         Point3 centre;
         for ( auto& pll : poly->lonlat() ) {
             Point3 pxyz;
-            util::Earth::convertSphericalToCartesian(pll, pxyz);
+            util::Earth::convertSphericalToCartesian( pll, pxyz );
             centre = Point3::add( centre, pxyz );
         }
-        centre = Point3::div(centre, poly->size());
+        centre = Point3::div( centre, poly->size() );
 
-        polygonTree.insert({centre, rank++});
+        polygonTree.insert( {centre, rank++} );
     }
 
-    auto lonlat = array::make_view<double, 2>(target.lonlat());
 
-    this->do_setup(source, target);
+    // search for containing partition
+
+    auto lonlat = array::make_view<double, 2>( target.lonlat() );
+
+    size_t k = 4;  // k-nearest neighbours
+
+
+    std::vector<util::LonLatPolygon> polysLL;
+    for ( auto& poly : polys ) {
+        polysLL.emplace_back( *poly );
+    }
+
+
+    // find the closest input point to the output point
+    for ( size_t ip = 0; ip < target.size(); ++ip ) {
+        Point3 pxyz;
+        PointLonLat pll{lonlat( ip, (size_t)0 ), lonlat( ip, (size_t)1 )};
+        util::Earth::convertSphericalToCartesian( pll, pxyz );
+
+        auto nn = polygonTree.kNearestNeighbours( pxyz, k );
+        ASSERT( !nn.empty() );
+
+        std::vector<std::vector<Point2> > pointsPerPartition( mpi::size() );
+        for ( auto& n : nn ) {
+            auto rank = n.payload();
+            bool found = false;
+            if ( ( found = polysLL[rank].contains( pll ) ) ) {
+                pointsPerPartition[rank].emplace_back(pll);
+                break;
+            }
+            ASSERT(found);  // on failure, increase k?
+        }
+    }
+
+
+
+
+    // cleanup
+    for ( auto& poly : polys ) {
+        delete poly;
+    }
+
+
+    this->do_setup( source, target );
 }
 
 void Method::setup( const Grid& source, const Grid& target ) {
     ATLAS_TRACE( "atlas::interpolation::method::Method::setup(Grid, Grid)" );
-    this->do_setup(source, target);
+    this->do_setup( source, target );
 }
 
 void Method::setup( const FunctionSpace& source, const Field& target ) {
     ATLAS_TRACE( "atlas::interpolation::method::Method::setup(FunctionSpace, Field)" );
-    this->do_setup(source, target);
+    this->do_setup( source, target );
 }
 
 void Method::setup( const FunctionSpace& source, const FieldSet& target ) {
     ATLAS_TRACE( "atlas::interpolation::method::Method::setup(FunctionSpace, FieldSet)" );
-    this->do_setup(source, target);
+    this->do_setup( source, target );
 }
 
 void Method::execute( const FieldSet& source, FieldSet& target ) const {
     ATLAS_TRACE( "atlas::interpolation::method::Method::execute(FieldSet, FieldSet)" );
-    this->do_execute(source, target);
+    this->do_execute( source, target );
 }
 
 void Method::execute( const Field& source, Field& target ) const {
     ATLAS_TRACE( "atlas::interpolation::method::Method::execute(Field, Field)" );
-    this->do_execute(source, target);
+    this->do_execute( source, target );
 }
 
 void Method::do_setup( const FunctionSpace& /*source*/, const Field& /*target*/ ) {
