@@ -85,7 +85,7 @@ public:
 
     virtual idx_t size() const override { return nb_edges_; }
 
-    Field lonlat() const override {return mesh_.edges().lonlat();}
+    Field lonlat() const override;
 
 private:  // methods
     idx_t config_size( const eckit::Configuration& config ) const;

@@ -78,7 +78,7 @@ public:
 
     virtual const util::PartitionPolygon& polygon( idx_t halo = 0 ) const;
 
-    virtual atlas::Field lonlat() const {ATLAS_NOTIMPLEMENTED;}
+    virtual atlas::Field lonlat() const;
 
 private:
     util::Metadata* metadata_;

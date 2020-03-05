@@ -15,11 +15,10 @@
 #include "eckit/utils/MD5.h"
 
 #include "atlas/array/MakeView.h"
+#include "atlas/field/detail/FieldImpl.h"
 #include "atlas/functionspace/EdgeColumns.h"
 #include "atlas/library/config.h"
-#include "atlas/mesh/HybridElements.h"
-#include "atlas/mesh/IsGhostNode.h"
-#include "atlas/mesh/Mesh.h"
+#include "atlas/mesh.h"
 #include "atlas/mesh/actions/BuildEdges.h"
 #include "atlas/mesh/actions/BuildHalo.h"
 #include "atlas/mesh/actions/BuildParallelFields.h"
@@ -32,8 +31,6 @@
 #include "atlas/runtime/Log.h"
 #include "atlas/runtime/Trace.h"
 #include "atlas/util/detail/Cache.h"
-
-#include "atlas/field/detail/FieldImpl.h"
 
 #if ATLAS_HAVE_FORTRAN
 #define REMOTE_IDX_BASE 1
@@ -558,6 +555,10 @@ const parallel::Checksum& EdgeColumns::checksum() const {
     }
     checksum_ = EdgeColumnsChecksumCache::instance().get_or_create( mesh_ );
     return *checksum_;
+}
+
+Field EdgeColumns::lonlat() const {
+    return mesh_.edges().field("lonlat");
 }
 
 //------------------------------------------------------------------------------
