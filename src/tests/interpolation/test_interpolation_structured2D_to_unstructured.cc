@@ -122,17 +122,17 @@ FunctionSpace output_functionspace_no_match() {
 
 FunctionSpace output_functionspace_same_points( const StructuredColumns& fs ) {
     std::vector<PointXY> points;
-    points.reserve(fs.size());
+    points.reserve( fs.size() );
 
     auto lonlat = array::make_view<double, 2>( fs.lonlat() );
-    auto ghost = array::make_view<int, 1>(fs.ghost());
-    for (idx_t i = 0; i < fs.size(); ++i) {
-        if (!ghost(i)) {
-            points.emplace_back( lonlat( i, LON ), lonlat( i, LAT ));
+    auto ghost  = array::make_view<int, 1>( fs.ghost() );
+    for ( idx_t i = 0; i < fs.size(); ++i ) {
+        if ( !ghost( i ) ) {
+            points.emplace_back( lonlat( i, LON ), lonlat( i, LAT ) );
         }
     }
 
-    return PointCloud( fs.lonlat());
+    return PointCloud( points );
 }
 
 
@@ -265,11 +265,15 @@ CASE( "test_nomatch_same_points" ) {
         const auto source_values = array::make_view<double, 2>( fields_source[f] );
         const auto target_values = array::make_view<double, 2>( fields_target[f] );
 
-        ASSERT( source_values.shape( 0 ) == target_values.shape( 0 ) );
+        ASSERT( source_values.shape( 0 ) >= target_values.shape( 0 ) );
         ASSERT( source_values.shape( 1 ) == target_values.shape( 1 ) );
+        auto ghost = array::make_view<int, 1>( input_fs.ghost() );
+
         for ( idx_t i = 0; i < source_values.shape( 0 ); ++i ) {
-            for ( idx_t j = 0; j < source_values.shape( 1 ); ++j ) {
-                EXPECT( eckit::types::is_approximately_equal( source_values( i, j ), target_values( i, j ), eps ) );
+            if ( !ghost( i ) ) {
+                for ( idx_t l = 0; l < source_values.shape( 1 ); ++l ) {
+                    EXPECT( eckit::types::is_approximately_equal( source_values( i, l ), target_values( i, l ), eps ) );
+                }
             }
         }
     }

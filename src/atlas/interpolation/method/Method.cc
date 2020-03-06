@@ -10,6 +10,8 @@
 
 #include "atlas/interpolation/method/Method.h"
 
+#include <algorithm>
+
 #include "eckit/linalg/LinearAlgebra.h"
 #include "eckit/linalg/Vector.h"
 #include "eckit/log/Timer.h"
@@ -196,10 +198,10 @@ void Method::setup( const FunctionSpace& source, const FunctionSpace& target ) {
     }
 
     auto lonlat = array::make_view<double, 2>( target.lonlat() );
-    size_t k    = 4;  // k-nearest neighbours
+    auto k      = std::min<size_t>( ntasks, 4 );
     ASSERT( k > 0 );
 
-    for ( size_t ip = 0; ip < target.size(); ++ip ) {
+    for ( idx_t ip = 0; ip < target.size(); ++ip ) {
         Point2 pll{lonlat( ip, LON ), lonlat( ip, LAT )};
 
         Point3 p;
