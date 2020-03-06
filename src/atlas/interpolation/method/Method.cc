@@ -281,6 +281,9 @@ void Method::execute( const FieldSet& source, FieldSet& target ) const {
 
       size_t ntasks = atlas::mpi::comm().size();
       std::vector< std::vector<double> > sendbuf(ntasks);
+      for (size_t jtask = 0; jtask < ntasks; ++jtask) {
+        sendbuf[jtask].clear();
+      }
 
 //    Copy interpolated fields into send buffer
       for ( idx_t i = 0; i < N; ++i ) {
@@ -294,7 +297,9 @@ void Method::execute( const FieldSet& source, FieldSet& target ) const {
 //              ATLAS_DEBUG_VAR(ipt);
               for( idx_t jlev=0; jlev<view.shape(1); ++jlev ) {
                 sendbuf[jtask].push_back(view(ipt, jlev));
+//                ATLAS_DEBUG_VAR(ipt);
 //                ATLAS_DEBUG_VAR(view(ipt, jlev));
+//                ATLAS_DEBUG_VAR(sendbuf[jtask]);
               }
               ++ipt;
             }
@@ -304,13 +309,24 @@ void Method::execute( const FieldSet& source, FieldSet& target ) const {
           ATLAS_NOTIMPLEMENTED;
           auto view = array::make_view<float,2>(field);
         }
-        field.dump(Log::info() << std::endl << "----1----"<<std::endl); Log::info()<<std::endl;
+//        field.dump(Log::info() << std::endl << "----1----"<<std::endl); Log::info()<<std::endl;
       }
+
+//      for (size_t jtask = 0; jtask < ntasks; ++jtask) {
+//        ATLAS_DEBUG_VAR(sendbuf[jtask].size());
+//        ATLAS_DEBUG_VAR(sendbuf[jtask]);
+//      }
 
 //    Exchange interpolated values back
       std::vector< std::vector<double> > recvbuf(ntasks);
       atlas::mpi::comm().allToAll(sendbuf, recvbuf);
 
+//      for (size_t jtask = 0; jtask < ntasks; ++jtask) {
+//        ATLAS_DEBUG_VAR(recvbuf[jtask].size());
+//        ATLAS_DEBUG_VAR(recvbuf[jtask]);
+//      }
+
+      std::vector<size_t> jjs(ntasks);
       for ( idx_t i = 0; i < N; ++i ) {
         Field field = target[i];
         if ( field.datatype().kind() == array::DataType::KIND_REAL64 ) {
@@ -328,17 +344,20 @@ void Method::execute( const FieldSet& source, FieldSet& target ) const {
 //        Copy receive buffer into target fields
           idx_t ipt = 0;
           for (size_t jtask = 0; jtask < ntasks; ++jtask) {
-            size_t jj = 0;
 //            ATLAS_DEBUG_VAR(jtask);
+//            ATLAS_DEBUG_VAR(recvbuf[jtask].size());
+//            ATLAS_DEBUG_VAR(recvbuf[jtask]);
 //            ATLAS_DEBUG_VAR(recvpts_[jtask].size());
+//            ATLAS_DEBUG_VAR(recvpts_[jtask]);
             for (size_t jpt = 0; jpt < recvpts_[jtask].size(); ++jpt) {
               ipt = recvpts_[jtask][jpt];
 //              ATLAS_DEBUG_VAR(ipt);
               for( idx_t jlev=0; jlev<view.shape(1); ++jlev ) {
-                view(ipt, jlev) = recvbuf[jtask][jj];
-                ++jj;
+                view(ipt, jlev) = recvbuf[jtask][jjs[jtask]];
+                ++jjs[jtask];
               }
             }
+//            ATLAS_DEBUG_VAR(jjs[jtask]);
           }
 
 //        Debug prints
@@ -348,7 +367,7 @@ void Method::execute( const FieldSet& source, FieldSet& target ) const {
             }                                                     // just for debug
           }                                                       // just for debug
 
-          field.dump(Log::info() << std::endl << "----2----"<<std::endl); Log::info()<<std::endl;
+//          field.dump(Log::info() << std::endl << "----2----"<<std::endl); Log::info()<<std::endl;
         }
         if ( field.datatype().kind() == array::DataType::KIND_REAL32 ) {
           ATLAS_NOTIMPLEMENTED;

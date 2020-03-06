@@ -231,8 +231,8 @@ CASE( "test_nomatch_lonlat" ) {
 
     const auto lonlat = array::make_view<double, 2>( output_fs.lonlat() );
     for ( auto i = 0; i < n; ++i ) {
-//        EXPECT( eckit::types::is_approximately_equal( lonlat( i, LON ), lon( i, 0 ) ) );
-//        EXPECT( eckit::types::is_approximately_equal( lonlat( i, LAT ), lat( i, 0 ) ) );
+        EXPECT( eckit::types::is_approximately_equal( lonlat( i, LON ), lon( i, 0 ) ) );
+        EXPECT( eckit::types::is_approximately_equal( lonlat( i, LAT ), lat( i, 0 ) ) );
         ATLAS_DEBUG_VAR( lonlat( i, LON ) );
         ATLAS_DEBUG_VAR( lonlat( i, LAT ) );
         ATLAS_DEBUG_VAR( lon( i, 0 ) );
