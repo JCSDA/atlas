@@ -9,13 +9,19 @@
  */
 
 
-#include "atlas/functionspace/PointCloud.h"
 #include "atlas/array.h"
+#include "atlas/field/Field.h"
+#include "atlas/functionspace/PointCloud.h"
 #include "atlas/grid/Grid.h"
 #include "atlas/grid/Iterator.h"
 #include "atlas/option/Options.h"
 #include "atlas/runtime/Exception.h"
 
+#if ATLAS_HAVE_FORTRAN
+#define REMOTE_IDX_BASE 1
+#else
+#define REMOTE_IDX_BASE 0
+#endif
 
 namespace atlas {
 namespace functionspace {
@@ -88,11 +94,13 @@ Field PointCloud::createField( const eckit::Configuration& config ) const {
     else {
         field = Field( name, datatype, array::make_shape( size() ) );
     }
+    field.set_functionspace( this );
     return field;
 }
 
 Field PointCloud::createField( const Field& other, const eckit::Configuration& config ) const {
-    return createField( option::datatype( other.datatype() ) | config );
+    return createField( option::datatype( other.datatype() ) | option::levels( other.levels() ) |
+                        option::variables( other.variables() ) | config );
 }
 
 std::string PointCloud::distribution() const {
