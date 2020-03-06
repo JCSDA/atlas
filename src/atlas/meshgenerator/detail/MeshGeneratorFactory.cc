@@ -26,7 +26,6 @@ void force_link() {
     static struct Link {
         Link() {
             MeshGeneratorBuilder<meshgenerator::DelaunayMeshGenerator>();
-            MeshGeneratorBuilder<meshgenerator::NoConnectivityMeshGenerator>();
             MeshGeneratorBuilder<meshgenerator::StructuredMeshGenerator>();
         }
     } link;
