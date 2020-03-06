@@ -12,6 +12,7 @@
 
 #include <string>
 #include <type_traits>
+#include <vector>
 
 #include "atlas/util/Object.h"
 
