@@ -16,6 +16,7 @@
 #include "eckit/thread/AutoLock.h"
 #include "eckit/thread/Mutex.h"
 #include "eckit/thread/Once.h"
+#include "eckit/types/Types.h"
 
 #include "atlas/array.h"
 #include "atlas/field/Field.h"
@@ -185,7 +186,6 @@ void Method::setup( const FunctionSpace& source, const FunctionSpace& target ) {
 
     ASSERT( polygons.size() == size_t( ntasks ) );
 
-
     // Distribute points to partitions, querying k-d tree for closest partition
     // sorted by distance to centroid
     // FIXME make k configurable
@@ -236,13 +236,15 @@ void Method::setup( const FunctionSpace& source, const FunctionSpace& target ) {
       size_t npts = recvpoints[jtask].size() / 2;
       ASSERT( recvpoints[jtask].size() == 2 * npts );
       srcpts_[jtask] = npts;
-      for (size_t jpt = 0; jpt < npts; jpt += 2) {
+      for (size_t jpt = 0; jpt < npts; ++jpt) {
         localOutPoints.emplace_back(
-          PointXY( recvpoints[jtask][jpt+LON], recvpoints[jtask][jpt+LAT] )
+          PointXY( recvpoints[jtask][2*jpt+LON], recvpoints[jtask][2*jpt+LAT] )
         );
       }
     }
+//    ATLAS_DEBUG_VAR(localOutPoints);
     localTargetPoints_.reset(new functionspace::PointCloud(localOutPoints));
+//    ATLAS_DEBUG_VAR(srcpts_);
 
 //  Call interpolation setup with local target points
     this->do_setup( source, *localTargetPoints_ );
@@ -287,9 +289,12 @@ void Method::execute( const FieldSet& source, FieldSet& target ) const {
           auto view = array::make_view<double,2>(field);
           idx_t ipt = 0;
           for (size_t jtask = 0; jtask < ntasks; ++jtask) {
+//            ATLAS_DEBUG_VAR(jtask);
             for (size_t jpt = 0; jpt < srcpts_[jtask]; ++jpt) {
+//              ATLAS_DEBUG_VAR(ipt);
               for( idx_t jlev=0; jlev<view.shape(1); ++jlev ) {
                 sendbuf[jtask].push_back(view(ipt, jlev));
+//                ATLAS_DEBUG_VAR(view(ipt, jlev));
               }
               ++ipt;
             }
@@ -310,6 +315,8 @@ void Method::execute( const FieldSet& source, FieldSet& target ) const {
         if ( field.datatype().kind() == array::DataType::KIND_REAL64 ) {
           auto view = array::make_view<double,2>(field);
 
+//          ATLAS_DEBUG_VAR(view.shape(0));
+//          ATLAS_DEBUG_VAR(view.shape(1));
 //        Fill with known number for easy debug
           for( idx_t jpt=0; jpt<view.shape(0); ++jpt ) {          // just for debug
             for( idx_t jlev=0; jlev<view.shape(1); ++jlev ) {     // just for debug
@@ -321,8 +328,11 @@ void Method::execute( const FieldSet& source, FieldSet& target ) const {
           idx_t ipt = 0;
           for (size_t jtask = 0; jtask < ntasks; ++jtask) {
             size_t jj = 0;
+//            ATLAS_DEBUG_VAR(jtask);
+//            ATLAS_DEBUG_VAR(recvpts_[jtask].size());
             for (size_t jpt = 0; jpt < recvpts_[jtask].size(); ++jpt) {
               ipt = recvpts_[jtask][jpt];
+//              ATLAS_DEBUG_VAR(ipt);
               for( idx_t jlev=0; jlev<view.shape(1); ++jlev ) {
                 view(ipt, jlev) = recvbuf[jtask][jj];
                 ++jj;
