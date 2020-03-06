@@ -99,6 +99,8 @@ private:
     void check_compatibility( const Field& src, const Field& tgt ) const;
 
     std::unique_ptr<functionspace::PointCloud> localTargetPoints_;
+    std::vector< std::vector<size_t> > recvpts_;
+    std::vector<size_t> srcpts_;
 };
 
 }  // namespace interpolation
