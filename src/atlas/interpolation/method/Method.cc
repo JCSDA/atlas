@@ -304,6 +304,7 @@ void Method::execute( const FieldSet& source, FieldSet& target ) const {
           ATLAS_NOTIMPLEMENTED;
           auto view = array::make_view<float,2>(field);
         }
+        field.dump(Log::info() << std::endl << "----1----"<<std::endl); Log::info()<<std::endl;
       }
 
 //    Exchange interpolated values back
@@ -347,6 +348,7 @@ void Method::execute( const FieldSet& source, FieldSet& target ) const {
             }                                                     // just for debug
           }                                                       // just for debug
 
+          field.dump(Log::info() << std::endl << "----2----"<<std::endl); Log::info()<<std::endl;
         }
         if ( field.datatype().kind() == array::DataType::KIND_REAL32 ) {
           ATLAS_NOTIMPLEMENTED;

@@ -48,6 +48,7 @@ ecbuild_add_test( TARGET atlas_test_interpolation_biquasicubic
 
 ecbuild_add_test( TARGET atlas_test_interpolation_structured2D_to_unstructured
   SOURCES  test_interpolation_structured2D_to_unstructured.cc
+  ENVIRONMENT ${ATLAS_TEST_ENVIRONMENT} "ATLAS_LOG_FILE=test_interpolation_structured2D_to_unstructured"
   LIBS     atlas
   MPI      2
 )

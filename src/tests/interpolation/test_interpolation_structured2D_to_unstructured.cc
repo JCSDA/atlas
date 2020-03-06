@@ -8,6 +8,8 @@
  * nor does it submit to any jurisdiction.
  */
 
+#include "eckit/types/FloatCompare.h"
+
 #include "atlas/array.h"
 #include "atlas/field/Field.h"
 #include "atlas/field/FieldSet.h"
@@ -20,6 +22,7 @@
 #include "atlas/mesh/Mesh.h"
 #include "atlas/meshgenerator.h"
 #include "atlas/output/Gmsh.h"
+#include "atlas/runtime/Log.h"
 #include "atlas/util/CoordinateEnums.h"
 
 #include "tests/AtlasTestEnvironment.h"
@@ -31,9 +34,8 @@ using atlas::util::Config;
 namespace atlas {
 namespace test {
 
-//-----------------------------------------------------------------------------
 
-static Config scheme() {
+Config scheme() {
     Config scheme;
     scheme.set( "type", "structured-linear2D" );
     scheme.set( "halo", 1 );
@@ -41,9 +43,11 @@ static Config scheme() {
     return scheme;
 }
 
+
 std::string input_gridname( const std::string& default_grid ) {
     return eckit::Resource<std::string>( "--input-grid", default_grid );
 }
+
 
 double vortex_rollup( double lon, double lat, double t ) {
     // lon and lat in degrees!
@@ -90,12 +94,14 @@ FunctionSpace output_functionspace_match() {
     }
     return PointCloud( points );
 }
+
+
 FunctionSpace output_functionspace_nomatch() {
     std::vector<PointXY> points;
     if ( mpi::size() == 2 ) {
         if ( mpi::rank() == 0 ) {
             points = std::vector<PointXY>{
-                {45., 45.}, {90., 45.}, {135., 45.}, {45., -45.}, {90., -45.}, {135., -45.},
+                {45., 45.}, {90., 42.}, {135., 45.}, {45., -45.}, {90., -45.}, {135., -45.},
             };
         }
         if ( mpi::rank() == 1 ) {
@@ -111,10 +117,13 @@ FunctionSpace output_functionspace_nomatch() {
     return PointCloud( points );
 }
 
-FieldSet create_source_fields( StructuredColumns& fs, idx_t nb_fields, idx_t nb_levels ) {
+
+FieldSet create_source_fields_vortex( StructuredColumns& fs, idx_t nb_fields, idx_t nb_levels ) {
     using Value = double;
+
     FieldSet fields_source;
     auto lonlat = array::make_view<double, 2>( fs.xy() );
+
     for ( idx_t f = 0; f < nb_fields; ++f ) {
         auto field_source = fields_source.add( fs.createField<Value>() );
         auto source       = array::make_view<Value, 2>( field_source );
@@ -122,10 +131,31 @@ FieldSet create_source_fields( StructuredColumns& fs, idx_t nb_fields, idx_t nb_
             for ( idx_t k = 0; k < nb_levels; ++k ) {
                 source( n, k ) = vortex_rollup( lonlat( n, LON ), lonlat( n, LAT ), 0.5 + double( k ) / 2 );
             }
-        };
+        }
     }
+
     return fields_source;
 }
+
+
+FieldSet create_source_fields_lonlat( StructuredColumns& fs ) {
+    using Value = double;
+
+    FieldSet fields_source;
+    auto lonlat = array::make_view<double, 2>( fs.xy() );
+
+    for ( auto ll : {LON, LAT} ) {
+        auto field  = fields_source.add( fs.createField<Value>() );
+        auto source = array::make_view<Value, 2>( field );
+        for ( idx_t n = 0; n < fs.size(); ++n ) {
+            source( n, 0 ) = lonlat( n, ll );
+        }
+    }
+
+    return fields_source;
+}
+
+
 FieldSet create_target_fields( FunctionSpace& fs, idx_t nb_fields, idx_t nb_levels ) {
     using Value = double;
     FieldSet fields_target;
@@ -136,6 +166,7 @@ FieldSet create_target_fields( FunctionSpace& fs, idx_t nb_fields, idx_t nb_leve
 }
 
 
+#if 0
 CASE( "test_match" ) {
     idx_t nb_fields = 2;
     idx_t nb_levels = 3;
@@ -143,15 +174,19 @@ CASE( "test_match" ) {
     Grid input_grid( input_gridname( "O32" ) );
     StructuredColumns input_fs( input_grid, option::halo( 1 ) | option::levels( nb_levels ) );
 
+    auto cfg = scheme();
+
     FunctionSpace output_fs = output_functionspace_match();
 
-    Interpolation interpolation( option::type( "structured-linear2D" ), input_fs, output_fs );
+    Interpolation interpolation( cfg, input_fs, output_fs );
 
-    FieldSet fields_source = create_source_fields( input_fs, nb_fields, nb_levels );
+    FieldSet fields_source = create_source_fields_vortex( input_fs, nb_fields, nb_levels );
     FieldSet fields_target = create_target_fields( output_fs, nb_fields, nb_levels );
 
     interpolation.execute( fields_source, fields_target );
 }
+
+
 CASE( "test_nomatch" ) {
     idx_t nb_fields = 2;
     idx_t nb_levels = 3;
@@ -161,16 +196,54 @@ CASE( "test_nomatch" ) {
 
     FunctionSpace output_fs = output_functionspace_nomatch();
 
-    FieldSet fields_source = create_source_fields( input_fs, nb_fields, nb_levels );
+    FieldSet fields_source = create_source_fields_vortex( input_fs, nb_fields, nb_levels );
     FieldSet fields_target = create_target_fields( output_fs, nb_fields, nb_levels );
 
     Interpolation interpolation( option::type( "structured-linear2D" ), input_fs, output_fs );
     interpolation.execute( fields_source, fields_target );
 }
+#endif
+
+
+CASE( "test_nomatch_lonlat" ) {
+    Grid input_grid( input_gridname( "O90" ) );  // 1-degree/1-degree grid approx.
+
+    StructuredColumns input_fs( input_grid, option::halo( 1 ) | option::levels( 1 ) );
+    FieldSet fields_source = create_source_fields_lonlat( input_fs );
+    ASSERT( fields_source.size() == 2 );
+
+    FunctionSpace output_fs = output_functionspace_nomatch();
+    FieldSet fields_target  = create_target_fields( output_fs, fields_source.size(), 1 );
+    ASSERT( fields_source.size() == fields_target.size() );
+
+    Interpolation interpolation( option::type( "structured-linear2D" ), input_fs, output_fs );
+    interpolation.execute( fields_source, fields_target );
+
+    const auto lon = array::make_view<double, 2>( fields_target[LON] );
+    const auto lat = array::make_view<double, 2>( fields_target[LAT] );
+    ASSERT( lon.size() == lat.size() );
+    auto n = lon.size();
+
+
+    lon.dump(atlas::Log::info() << std::endl << "---lon---" << std::endl);
+    lat.dump(atlas::Log::info() << std::endl << "---lat---" << std::endl);
+
+
+    const auto lonlat = array::make_view<double, 2>( output_fs.lonlat() );
+    for ( auto i = 0; i < n; ++i ) {
+//        EXPECT( eckit::types::is_approximately_equal( lonlat( i, LON ), lon( i, 0 ) ) );
+//        EXPECT( eckit::types::is_approximately_equal( lonlat( i, LAT ), lat( i, 0 ) ) );
+        ATLAS_DEBUG_VAR( lonlat( i, LON ) );
+        ATLAS_DEBUG_VAR( lonlat( i, LAT ) );
+        ATLAS_DEBUG_VAR( lon( i, 0 ) );
+        ATLAS_DEBUG_VAR( lat( i, 0 ) );
+    }
+}
 
 
 }  // namespace test
 }  // namespace atlas
+
 
 int main( int argc, char** argv ) {
     return atlas::test::run( argc, argv );
