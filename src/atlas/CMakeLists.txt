@@ -698,8 +698,6 @@ target_include_directories( atlas PUBLIC
     $<INSTALL_INTERFACE:include>
 )
 
-
-
 if( ATLAS_HAVE_TESSELATION )
   target_link_libraries( atlas PRIVATE ${CGAL_LIBRARIES} )
   target_include_directories( atlas PRIVATE ${CGAL_INCLUDE_DIRS} )
@@ -712,6 +710,10 @@ endif()
 
 if( ATLAS_HAVE_EIGEN AND EIGEN3_INCLUDE_DIR )
   target_include_directories( atlas PUBLIC ${EIGEN3_INCLUDE_DIR} )
+  if( CMAKE_CXX_COMPILER_ID MATCHES Intel AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 19)
+    #Problem linking with "__builtin_shuffle" is not supported
+    target_compile_definitions( atlas PRIVATE EIGEN_DONT_VECTORIZE=1 )
+  endif()
 endif()
 
 if( ATLAS_HAVE_OMP_CXX )

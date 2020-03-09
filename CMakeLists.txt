@@ -129,6 +129,7 @@ ecbuild_add_option( FEATURE TRANS
 set(Boost_USE_MULTITHREADED      ON )
 
 ecbuild_add_option( FEATURE TESSELATION
+                    DEFAULT OFF
                     DESCRIPTION "Support for unstructured mesh generation"
                     REQUIRED_PACKAGES "CGAL QUIET" "Boost 1.45.0" )
 
