@@ -712,7 +712,8 @@ if( ATLAS_HAVE_EIGEN AND EIGEN3_INCLUDE_DIR )
   target_include_directories( atlas PUBLIC ${EIGEN3_INCLUDE_DIR} )
   if( CMAKE_CXX_COMPILER_ID MATCHES Intel AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 19)
     #Problem linking with "__builtin_shuffle" is not supported
-    target_compile_definitions( atlas PRIVATE EIGEN_DONT_VECTORIZE=1 )
+    message(WARNING "[Intel/20.0 Eigen Bugfix] -DEIGEN_DONT_VECTORIZE=1")
+    target_compile_definitions( atlas PUBLIC EIGEN_DONT_VECTORIZE=1 )
   endif()
 endif()
 

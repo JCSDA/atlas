@@ -197,6 +197,10 @@ endif()
 
 ### Eigen
 
+find_package( Eigen3 REQUIRED NO_MODULE HINTS
+    $ENV{Eigen3_ROOT} $ENV{EIGEN3_ROOT} $ENV{Eigen_ROOT} $ENV{EIGEN_ROOT}
+    $ENV{Eigen3_PATH} $ENV{EIGEN3_PATH} $ENV{Eigen_PATH} $ENV{EIGEN_PATH} )
+
 ecbuild_add_option( FEATURE EIGEN
                     DESCRIPTION "Use Eigen linear algebra library"
                     REQUIRED_PACKAGES Eigen3 )
