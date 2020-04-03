@@ -303,7 +303,7 @@ endif()
 ecbuild_add_option( FEATURE DOCS
                     DESCRIPTION "Atlas documentation"
                     DEFAULT OFF
-                    REQUIRED_PACKAGES "Latex" )
+                    REQUIRED_PACKAGES "LATEX" )
 
 if(ATLAS_HAVE_DOCS)
     add_subdirectory( doc )
