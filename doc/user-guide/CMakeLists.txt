@@ -69,8 +69,8 @@ ENDFOREACH()
 # PDF GENERATION ==============================================================
 add_custom_target(atlas-user-guide-pdf
    export TEXINPUTS=${CMAKE_SOURCE_DIR}//:${CMAKE_CURRENT_BINARY_DIR}//: &&
-   ${PDFLATEX} --output-directory ${USERGUIDE} ${USERGUIDESRC}/user-guide.tex
+   ${PDFLATEX_COMPILER} --output-directory ${USERGUIDE} ${USERGUIDESRC}/user-guide.tex
    COMMAND export TEXINPUTS=${CMAKE_SOURCE_DIR}//:${CMAKE_CURRENT_BINARY_DIR}//: &&
-   ${PDFLATEX} --output-directory ${USERGUIDE} ${USERGUIDESRC}/user-guide.tex
+   ${PDFLATEX_COMPILER} --output-directory ${USERGUIDE} ${USERGUIDESRC}/user-guide.tex
    WORKING_DIRECTORY ${USERGUIDESRC} )
 # =============================================================================
