@@ -306,6 +306,8 @@ ecbuild_add_option( FEATURE DOCS
                     REQUIRED_PACKAGES "LATEX" )
 
 if(ATLAS_HAVE_DOCS)
+    # Make sure all the necessary components of LATEX package are found
+    find_package(LATEX REQUIRED COMPONENTS PDFLATEX BIBTEX MAKEINDEX HTLATEX)
     add_subdirectory( doc )
 endif()
 
