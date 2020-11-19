@@ -90,6 +90,8 @@ void StructuredInterpolation2D<Kernel>::do_setup( const FunctionSpace& source, c
     else if ( functionspace::StructuredColumns tgt = target ) {
         target_lonlat_ = tgt.xy();
         target_ghost_  = tgt.ghost();
+        std::cout << "target_lonlat_ = " << target_lonlat_ << std::endl;
+        std::cout << "target_ghost_ = " << target_ghost_ << std::endl;
     }
     else {
         throw_NotImplemented(
@@ -151,6 +153,8 @@ void StructuredInterpolation2D<Kernel>::setup( const FunctionSpace& source ) {
         idx_t inp_npts = source.size();
         idx_t out_npts = target_lonlat_.shape( 0 );
 
+        std::cout << "inp_npts " << inp_npts << std::endl;
+        std::cout << "out_npts " << out_npts << std::endl;
 
         auto lonlat = array::make_view<double, 2>( target_lonlat_ );
 

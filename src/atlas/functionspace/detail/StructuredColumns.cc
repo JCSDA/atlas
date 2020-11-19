@@ -397,14 +397,21 @@ StructuredColumns::StructuredColumns( const Grid& grid, const Vertical& vertical
     vertical_( vertical ), nb_levels_( vertical_.size() ), grid_( new StructuredGrid( grid ) ) {
     ATLAS_TRACE( "StructuredColumns constructor" );
 
+    std::cout << "StructuredColumns constructor g v  config before partitioner = " << p << std::endl;
+
     grid::Partitioner partitioner( p );
+
+    std::cout << "StructuredColumns constructor g v  config = " << config  << std::endl;
     if ( not partitioner ) {
         if ( config.has( "partitioner" ) ) {
+            std::cout <<  "config.getSubConfiguration(partitioner )" <<
+                         config.getSubConfiguration( "partitioner" ) << std::endl;
             partitioner = grid::Partitioner( config.getSubConfiguration( "partitioner" ) );
         }
         else {
             if ( grid_->domain().global() ) {
                 partitioner = grid::Partitioner( "equal_regions" );
+//               partitioner = grid::Partitioner( "hv_checkerboard" );
             }
             else {
                 partitioner = grid::Partitioner( "checkerboard" );

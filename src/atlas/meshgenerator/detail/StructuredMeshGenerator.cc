@@ -39,7 +39,7 @@
 #include "atlas/runtime/Trace.h"
 #include "atlas/util/CoordinateEnums.h"
 
-#define DEBUG_OUTPUT 0
+#define DEBUG_OUTPUT 1
 
 using namespace atlas::array;
 using atlas::Mesh;
@@ -66,6 +66,10 @@ struct Region {
 };
 
 StructuredMeshGenerator::StructuredMeshGenerator( const eckit::Parametrisation& p ) {
+
+    std::cout << "StructuredMeshGenerator::config parameterisation" <<
+       dynamic_cast<const eckit::Configuration &>(p) << std::endl;
+
     configure_defaults();
 
     bool include_pole;
@@ -122,22 +126,20 @@ StructuredMeshGenerator::StructuredMeshGenerator( const eckit::Parametrisation& 
     }
 
     std::string partitioner;
-    if ( grid::Partitioner::exists( "trans" ) ) {
-        partitioner = "trans";
-    }
-    else {
-        partitioner = "equal_regions";
-    }
-    options.set( "partitioner", partitioner );
-
     if ( p.get( "partitioner", partitioner ) ) {
         if ( not grid::Partitioner::exists( partitioner ) ) {
             Log::warning() << "Atlas does not have support for partitioner " << partitioner << ". "
                            << "Defaulting to use partitioner EqualRegions" << std::endl;
             partitioner = "equal_regions";
         }
-        options.set( "partitioner", partitioner );
+    } else if ( grid::Partitioner::exists( "trans" ) ) {
+        partitioner = "trans";
+    } else {
+        partitioner = "equal_regions";
     }
+    std::cout << "StructuredMeshGenerator::partitioner = " << partitioner << std::endl;
+    options.set( "partitioner", partitioner );
+
 }
 
 void StructuredMeshGenerator::configure_defaults() {
@@ -190,8 +192,17 @@ void StructuredMeshGenerator::generate( const Grid& grid, Mesh& mesh ) const {
 
     idx_t nb_parts = options.getInt( "nb_parts" );
 
+    std::cout << " StructuredMeshGenerator::generate nb = "  << nb_parts << std::endl;
+
     std::string partitioner_type = "equal_regions";
     options.get( "partitioner", partitioner_type );
+
+    std::cout << " StructuredMeshGenerator::generate p = "  << partitioner_type << std::endl;
+
+    std::cout << " StructuredMeshGenerator::generate rg.ny() = "  << rg.ny() << std::endl;
+
+    std::cout << " StructuredMeshGenerator::generate rg.nx() = "  << rg.nx() << std::endl;
+
 
     if ( partitioner_type == "trans" && rg.ny() % 2 == 1 ) {
         partitioner_type = "equal_regions";  // Odd number of latitudes
@@ -201,8 +212,16 @@ void StructuredMeshGenerator::generate( const Grid& grid, Mesh& mesh ) const {
     }
 
     grid::Partitioner partitioner( partitioner_type, nb_parts );
+
+    std::cout << " StructuredMeshGenerator:: after partitioner = "  << std::endl;
+
     grid::Distribution distribution( partitioner.partition( grid ) );
+
+    std::cout << " StructuredMeshGenerator:: after distribution = "  << std::endl;
+
     generate( grid, distribution, mesh );
+
+    std::cout << " StructuredMeshGenerator:: after generate = "  << std::endl;
 }
 
 void StructuredMeshGenerator::hash( eckit::Hash& h ) const {
@@ -232,7 +251,7 @@ void StructuredMeshGenerator::generate( const Grid& grid, const grid::Distributi
     idx_t mypart = options.getInt( "part" );
 
 // show distribution
-#if DEBUG_OUTPUT
+//#if DEBUG_OUTPUT
     int inode                       = 0;
     const atlas::vector<int>& parts = distribution;
     Log::info() << "Partition : " << std::endl;
@@ -243,15 +262,23 @@ void StructuredMeshGenerator::generate( const Grid& grid, const grid::Distributi
         }
         Log::info() << std::endl;
     }
-#endif
+//#endif
 
     // clone some grid properties
     setGrid( mesh, rg, distribution );
 
+    std::cout <<  "after setGrid" << std::endl;
+
     Region region;
     generate_region( rg, distribution, mypart, region );
 
+    std::cout <<  "after generate Region "  << std::endl;
+
     generate_mesh( rg, distribution, region, mesh );
+
+    std::cout <<  "after generate mesh "  << std::endl;
+
+
 }
 
 void StructuredMeshGenerator::generate_region( const StructuredGrid& rg, const atlas::vector<int>& parts, int mypart,
@@ -750,9 +777,9 @@ We need to connect to next region
         }
     }  // for jlat
 
-    //  Log::info()  << "nb_triags = " << region.ntriags << std::endl;
-    //  Log::info()  << "nb_quads = " << region.nquads << std::endl;
-    //  Log::info()  << "nb_elems = " << nelems << std::endl;
+    std::cout  << "nb_triags = " << region.ntriags << std::endl;
+    std::cout  << "nb_quads = " << region.nquads << std::endl;
+    std::cout << "nb_elems = " << nelems << std::endl;
 
     int nb_region_nodes = 0;
     for ( int jlat = region.north; jlat <= region.south; ++jlat ) {
@@ -1423,6 +1450,8 @@ void StructuredMeshGenerator::generate_mesh( const StructuredGrid& rg, const atl
             }
         }
     }
+    std::cout << " before generateGlobalElementNumbering"  << std::endl;
+
     generateGlobalElementNumbering( mesh );
 }
 

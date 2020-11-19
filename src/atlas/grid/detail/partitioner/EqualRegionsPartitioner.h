@@ -26,7 +26,7 @@
 //     Only a subset of the original eq_regions package has been coded to
 //     determin
 //     the high level distribution of regions on a sphere, as the detailed
-//     distribution of grid points to each region is left to implentatios.
+//     distribution of grid points to each region is left to implementations.
 //
 //     The following copyright notice for the eq_regions package is included
 //     from
