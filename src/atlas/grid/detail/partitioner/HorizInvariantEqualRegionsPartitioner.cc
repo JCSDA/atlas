@@ -8,7 +8,6 @@
 #include <iostream>
 #include <vector>
 
-
 #include "atlas/grid/StructuredGrid.h"
 #include "atlas/runtime/Exception.h"
 #include "atlas/runtime/Log.h"
@@ -23,32 +22,32 @@ namespace partitioner {
 
 HorizInvariantEqualRegionsPartitioner::HorizInvariantEqualRegionsPartitioner() : Partitioner() {
     nbands_       = 0;     // to be computed later
-    checkerboard_ = true;  // default
+    zonalboard_ = true;  // default
 }
 
 HorizInvariantEqualRegionsPartitioner::HorizInvariantEqualRegionsPartitioner( int N ) : Partitioner( N ) {
     nbands_       = 0;     // to be computed later
-    checkerboard_ = true;  // default
+    zonalboard_ = true;  // default
 }
 
 HorizInvariantEqualRegionsPartitioner::HorizInvariantEqualRegionsPartitioner( int N, int nbands ) : Partitioner( N ) {
     nbands_       = nbands;
-    checkerboard_ = true;  // default
+    zonalboard_ = true;  // default
 }
 
-HorizInvariantEqualRegionsPartitioner::HorizInvariantEqualRegionsPartitioner( int N, int nbands, bool checkerboard ) : Partitioner( N ) {
+HorizInvariantEqualRegionsPartitioner::HorizInvariantEqualRegionsPartitioner( int N, int nbands, bool zonalboard ) : Partitioner( N ) {
     nbands_       = nbands;
-    checkerboard_ = checkerboard;
+    zonalboard_ = zonalboard;
 }
 
-HorizInvariantEqualRegionsPartitioner::Checkerboard HorizInvariantEqualRegionsPartitioner::checkerboard( const Grid& grid ) const {
+HorizInvariantEqualRegionsPartitioner::Zonalboard HorizInvariantEqualRegionsPartitioner::zonalboard( const Grid& grid ) const {
     // grid dimensions
     const RegularGrid rg( grid );
     if ( !rg ) {
-        throw_Exception( "Checkerboard Partitioner only works for Regular grids.", Here() );
+        throw_Exception( "Zonalboard Partitioner only works for Regular grids.", Here() );
     }
 
-    Checkerboard cb;
+    Zonalboard cb;
 
     cb.nx        = rg.nx();
     cb.ny        = rg.ny();
@@ -57,32 +56,7 @@ HorizInvariantEqualRegionsPartitioner::Checkerboard HorizInvariantEqualRegionsPa
     // for now try a zonal band decomposition
     cb.nbands = nparts;
 
-    /*
-    if ( nbands_ > 0 ) {
-        cb.nbands = nbands_;
-    }
-    else {
-
-
-        // default number of bands
-        double zz = std::sqrt( (double)( nparts * cb.ny ) / cb.nx );  // aim at +/-square regions
-        cb.nbands = (idx_t)zz + 0.5;
-        if ( cb.nbands < 1 ) {
-            cb.nbands = 1;  // at least one band
-        }
-        if ( cb.nbands > nparts ) {
-            cb.nbands = nparts;  // not more bands than procs
-        }
-
-        // true checkerboard means nbands must divide nparts
-        if ( checkerboard_ ) {
-            while ( nparts % cb.nbands != 0 ) {
-                cb.nbands--;
-            }
-        }
-    }
-    */
-    if ( checkerboard_ && nparts % cb.nbands != 0 ) {
+    if ( zonalboard_ && nparts % cb.nbands != 0 ) {
         throw_Exception( "number of bands doesn't divide number of partitions", Here() );
     }
 
@@ -117,7 +91,7 @@ bool compare_X_Y( const HorizInvariantEqualRegionsPartitioner::NodeInt& node1, c
 //  nb_nodes - total number of nodes on horizontal surface.
 //  nodes[] - a C style array that holds the "global node index"?
 //  part[] - a C style array that holds the partitioning number
-void HorizInvariantEqualRegionsPartitioner::partition( const Checkerboard& cb, int nb_nodes, NodeInt nodes[], int part[] ) const {
+void HorizInvariantEqualRegionsPartitioner::partition( const Zonalboard& cb, int nb_nodes, NodeInt nodes[], int part[] ) const {
     size_t nparts = nb_partitions();
     size_t nbands = cb.nbands;
     size_t nx     = cb.nx;
@@ -179,7 +153,7 @@ void HorizInvariantEqualRegionsPartitioner::partition( const Grid& grid, int par
         }
     }
     else {
-        auto cb = checkerboard( grid );
+        auto cb = zonalboard( grid );
 
         std::vector<NodeInt> nodes( grid.size() );
         int n( 0 );
@@ -204,5 +178,5 @@ void HorizInvariantEqualRegionsPartitioner::partition( const Grid& grid, int par
 
 namespace {
 atlas::grid::detail::partitioner::PartitionerBuilder<atlas::grid::detail::partitioner::HorizInvariantEqualRegionsPartitioner>
-    __HorizontalInvariantEqualRegions( "hv_checkerboard" );
+    __HorizontalInvariantEqualRegions( "zonalboard" );
 }

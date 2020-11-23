@@ -27,7 +27,7 @@ public:
     HorizInvariantEqualRegionsPartitioner( int N );  // N is the number of parts (aka MPI tasks)
 
     HorizInvariantEqualRegionsPartitioner( int N, int nbands );
-    HorizInvariantEqualRegionsPartitioner( int N, int nbands, bool checkerboard );
+    HorizInvariantEqualRegionsPartitioner( int N, int nbands, bool zonalboard );
 
     // Node struct that holds the x and y indices (for global, it's longitude and
     // latitude in millidegrees (integers))
@@ -38,19 +38,19 @@ public:
         int n;
     };
 
-    virtual std::string type() const { return "checkerboard"; }
+    virtual std::string type() const { return "zonalboard"; }
 
 private:
-    struct Checkerboard {
+    struct Zonalboard {
         idx_t nbands;  // number of bands
         idx_t nx, ny;  // grid dimensions
     };
 
-    Checkerboard checkerboard( const Grid& ) const;
+    Zonalboard zonalboard( const Grid& ) const;
 
     // Doesn't matter if nodes[] is in degrees or radians, as a sorting
     // algorithm is used internally
-    void partition( const Checkerboard& cb, int nb_nodes, NodeInt nodes[], int part[] ) const;
+    void partition( const Zonalboard& cb, int nb_nodes, NodeInt nodes[], int part[] ) const;
 
     virtual void partition( const Grid&, int part[] ) const;
 
@@ -58,7 +58,7 @@ private:
 
 private:
     idx_t nbands_;       // number of bands from configuration
-    bool checkerboard_;  // exact (true) or approximate (false) checkerboard
+    bool zonalboard_;  // exact (true) or approximate (false) zonalboard
 };
 
 }  // namespace partitioner

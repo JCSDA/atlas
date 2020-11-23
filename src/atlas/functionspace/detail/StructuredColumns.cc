@@ -411,7 +411,7 @@ StructuredColumns::StructuredColumns( const Grid& grid, const Vertical& vertical
         else {
             if ( grid_->domain().global() ) {
                 partitioner = grid::Partitioner( "equal_regions" );
-//               partitioner = grid::Partitioner( "hv_checkerboard" );
+//               partitioner = grid::Partitioner( "zonalboard" );
             }
             else {
                 partitioner = grid::Partitioner( "checkerboard" );
