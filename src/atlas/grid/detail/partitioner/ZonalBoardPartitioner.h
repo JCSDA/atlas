@@ -20,14 +20,14 @@ namespace grid {
 namespace detail {
 namespace partitioner {
 
-class HorizInvariantEqualRegionsPartitioner : public Partitioner {
+class ZonalBoardPartitioner : public Partitioner {
 public:
-    HorizInvariantEqualRegionsPartitioner();
+    ZonalBoardPartitioner();
 
-    HorizInvariantEqualRegionsPartitioner( int N );  // N is the number of parts (aka MPI tasks)
+    ZonalBoardPartitioner( int N );  // N is the number of parts (aka MPI tasks)
 
-    HorizInvariantEqualRegionsPartitioner( int N, int nbands );
-    HorizInvariantEqualRegionsPartitioner( int N, int nbands, bool zonalboard );
+    ZonalBoardPartitioner( int N, int nbands );
+    ZonalBoardPartitioner( int N, int nbands, bool zonalboard );
 
     // Node struct that holds the x and y indices (for global, it's longitude and
     // latitude in millidegrees (integers))

@@ -150,8 +150,6 @@ grid/detail/partitioner/CheckerboardPartitioner.cc
 grid/detail/partitioner/CheckerboardPartitioner.h
 grid/detail/partitioner/EqualRegionsPartitioner.cc
 grid/detail/partitioner/EqualRegionsPartitioner.h
-grid/detail/partitioner/HorizInvariantEqualRegionsPartitioner.cc
-grid/detail/partitioner/HorizInvariantEqualRegionsPartitioner.h
 grid/detail/partitioner/MatchingMeshPartitioner.h
 grid/detail/partitioner/MatchingMeshPartitioner.cc
 grid/detail/partitioner/MatchingMeshPartitionerBruteForce.cc
@@ -166,6 +164,8 @@ grid/detail/partitioner/MatchingFunctionSpacePartitionerLonLatPolygon.cc
 grid/detail/partitioner/MatchingFunctionSpacePartitionerLonLatPolygon.h
 grid/detail/partitioner/Partitioner.cc
 grid/detail/partitioner/Partitioner.h
+grid/detail/partitioner/ZonalBoardPartitioner.cc
+grid/detail/partitioner/ZonalBoardPartitioner.h
 
 grid/detail/spacing/Spacing.cc
 grid/detail/spacing/Spacing.h

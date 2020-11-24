@@ -1,5 +1,5 @@
 
-#include "HorizInvariantEqualRegionsPartitioner.h"
+#include "ZonalBoardPartitioner.h"
 
 #include <algorithm>
 #include <cmath>
@@ -20,27 +20,27 @@ namespace grid {
 namespace detail {
 namespace partitioner {
 
-HorizInvariantEqualRegionsPartitioner::HorizInvariantEqualRegionsPartitioner() : Partitioner() {
+ZonalBoardPartitioner::ZonalBoardPartitioner() : Partitioner() {
     nbands_       = 0;     // to be computed later
     zonalboard_ = true;  // default
 }
 
-HorizInvariantEqualRegionsPartitioner::HorizInvariantEqualRegionsPartitioner( int N ) : Partitioner( N ) {
+ZonalBoardPartitioner::ZonalBoardPartitioner( int N ) : Partitioner( N ) {
     nbands_       = 0;     // to be computed later
     zonalboard_ = true;  // default
 }
 
-HorizInvariantEqualRegionsPartitioner::HorizInvariantEqualRegionsPartitioner( int N, int nbands ) : Partitioner( N ) {
+ZonalBoardPartitioner::ZonalBoardPartitioner( int N, int nbands ) : Partitioner( N ) {
     nbands_       = nbands;
     zonalboard_ = true;  // default
 }
 
-HorizInvariantEqualRegionsPartitioner::HorizInvariantEqualRegionsPartitioner( int N, int nbands, bool zonalboard ) : Partitioner( N ) {
+ZonalBoardPartitioner::ZonalBoardPartitioner( int N, int nbands, bool zonalboard ) : Partitioner( N ) {
     nbands_       = nbands;
     zonalboard_ = zonalboard;
 }
 
-HorizInvariantEqualRegionsPartitioner::Zonalboard HorizInvariantEqualRegionsPartitioner::zonalboard( const Grid& grid ) const {
+ZonalBoardPartitioner::Zonalboard ZonalBoardPartitioner::zonalboard( const Grid& grid ) const {
     // grid dimensions
     const RegularGrid rg( grid );
     if ( !rg ) {
@@ -63,7 +63,7 @@ HorizInvariantEqualRegionsPartitioner::Zonalboard HorizInvariantEqualRegionsPart
     return cb;
 }
 
-bool compare_Y_X( const HorizInvariantEqualRegionsPartitioner::NodeInt& node1, const HorizInvariantEqualRegionsPartitioner::NodeInt& node2 ) {
+bool compare_Y_X( const ZonalBoardPartitioner::NodeInt& node1, const ZonalBoardPartitioner::NodeInt& node2 ) {
     // comparison of two locations; X1 < X2 if it's to the south, then to the
     // east.
     if ( node1.y < node2.y ) {
@@ -75,7 +75,7 @@ bool compare_Y_X( const HorizInvariantEqualRegionsPartitioner::NodeInt& node1, c
     return false;
 }
 
-bool compare_X_Y( const HorizInvariantEqualRegionsPartitioner::NodeInt& node1, const HorizInvariantEqualRegionsPartitioner::NodeInt& node2 ) {
+bool compare_X_Y( const ZonalBoardPartitioner::NodeInt& node1, const ZonalBoardPartitioner::NodeInt& node2 ) {
     // comparison of two locations; X1 < X2 if it's to the east, then to the
     // south.
     if ( node1.x < node2.x ) {
@@ -91,7 +91,7 @@ bool compare_X_Y( const HorizInvariantEqualRegionsPartitioner::NodeInt& node1, c
 //  nb_nodes - total number of nodes on horizontal surface.
 //  nodes[] - a C style array that holds the "global node index"?
 //  part[] - a C style array that holds the partitioning number
-void HorizInvariantEqualRegionsPartitioner::partition( const Zonalboard& cb, int nb_nodes, NodeInt nodes[], int part[] ) const {
+void ZonalBoardPartitioner::partition( const Zonalboard& cb, int nb_nodes, NodeInt nodes[], int part[] ) const {
     size_t nparts = nb_partitions();
     size_t nbands = cb.nbands;
     size_t nx     = cb.nx;
@@ -145,7 +145,7 @@ Number of procs per band
     }
 }
 
-void HorizInvariantEqualRegionsPartitioner::partition( const Grid& grid, int part[] ) const {
+void ZonalBoardPartitioner::partition( const Grid& grid, int part[] ) const {
     if ( nb_partitions() == 1 )  // trivial solution, so much faster
     {
         for ( idx_t j = 0; j < grid.size(); ++j ) {
@@ -177,6 +177,6 @@ void HorizInvariantEqualRegionsPartitioner::partition( const Grid& grid, int par
 }  // namespace atlas
 
 namespace {
-atlas::grid::detail::partitioner::PartitionerBuilder<atlas::grid::detail::partitioner::HorizInvariantEqualRegionsPartitioner>
-    __HorizontalInvariantEqualRegions( "zonalboard" );
+atlas::grid::detail::partitioner::PartitionerBuilder<atlas::grid::detail::partitioner::ZonalBoardPartitioner>
+    __ZonalBoard( "zonalboard" );
 }
