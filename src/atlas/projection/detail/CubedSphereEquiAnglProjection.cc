@@ -77,6 +77,15 @@ void CubedSphereEquiAnglProjection::xy2lonlat( double crd[] ) const {
 
 // -------------------------------------------------------------------------------------------------
 
+ProjectionImpl::Jacobian CubedSphereEquiAnglProjection::jacobian(const PointLonLat& ) const {
+  Jacobian jac;
+//cmw I need to think clearly what this should be;
+  return jac;
+}
+
+
+// -------------------------------------------------------------------------------------------------
+
 CubedSphereEquiAnglProjection::Spec CubedSphereEquiAnglProjection::spec() const {
   // Fill projection specification
   Spec proj;

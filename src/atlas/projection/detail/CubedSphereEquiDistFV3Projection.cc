@@ -268,6 +268,13 @@ void CubedSphereEquiDistFV3Projection::xy2lonlat( double crd[] ) const {
   CubedSphereProjectionBase::xy2lonlat(crd);
 }
 
+
+ProjectionImpl::Jacobian CubedSphereEquiDistFV3Projection::jacobian(const PointLonLat& ) const {
+  Jacobian jac;
+//cmw I need to think clearly what this should be;
+  return jac;
+}
+
 // -------------------------------------------------------------------------------------------------
 
 CubedSphereEquiDistFV3Projection::Spec CubedSphereEquiDistFV3Projection::spec() const {
