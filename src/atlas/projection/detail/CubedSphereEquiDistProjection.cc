@@ -79,9 +79,7 @@ void CubedSphereEquiDistProjection::xy2lonlat( double crd[] ) const {
 // -------------------------------------------------------------------------------------------------
 
 ProjectionImpl::Jacobian CubedSphereEquiDistProjection::jacobian(const PointLonLat& ) const {
-  Jacobian jac;
-//cmw I need to think clearly what this should be;
-  return jac;
+  ATLAS_NOTIMPLEMENTED;
 }
 
 // -------------------------------------------------------------------------------------------------

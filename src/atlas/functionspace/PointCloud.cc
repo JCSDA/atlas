@@ -58,24 +58,16 @@ PointCloud::PointCloud( const Field& lonlat, const Field& ghost ) : lonlat_( lon
 
 PointCloud::PointCloud( const Grid& grid ) {
 
-    std::cout <<  "PointCloud Grid input " << *grid << std::endl;
-    std::cout <<  "PointCloud Grid size " << grid.size() << std::endl;
-    std::cout <<  "PointCloud Grid size distance " <<
-                  std::distance(grid.lonlat().begin(),
-                                grid.lonlat().end()) << std::endl;
-
-    std::cout <<  "PointCloud Grid spec " << grid.spec() << std::endl;
-
     lonlat_     = Field( "lonlat", array::make_datatype<double>(), array::make_shape( grid.size(), 2 ) );
     auto lonlat = array::make_view<double, 2>( lonlat_ );
 
     idx_t j{0};
-    auto it = grid.lonlat().begin();
-    for (int i = 0; i < grid.size(); ++i) {
-      lonlat( j, 0 ) = (*it).lon();
-      lonlat( j, 1 ) = (*it).lat();
-      it += 1;
+    for ( auto p : grid.lonlat() ) {
+      lonlat( j, 0 ) = p.lon();
+      lonlat( j, 1 ) = p.lat();
+       ++j;
     }
+
     std::cout <<  "PointCloud Grid end " << std::endl;
 }
 
