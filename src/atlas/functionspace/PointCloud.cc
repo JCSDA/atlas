@@ -107,7 +107,7 @@ Field PointCloud::createField( const eckit::Configuration& config ) const {
 Field PointCloud::createField( const Field& other, const eckit::Configuration& config ) const {
 
     util::Config loc_conf(config);
-    loc_conf.set("datatype",  other.datatype().str());
+    loc_conf.set("datatype",  other.datatype().kind());
     loc_conf.set("levels",  other.levels());
     loc_conf.set("variables",  other.variables() );
 
