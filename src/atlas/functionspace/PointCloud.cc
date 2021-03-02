@@ -82,14 +82,11 @@ Field PointCloud::ghost() const {
 Field PointCloud::createField( const eckit::Configuration& config ) const {
     std::cout << "Point Cloud config"  << config << std::endl;
 
-    std::string datatype_str;
-    if ( !config.has( "datatype") ) {
+    long kind;
+    if (!config.get("datatype", kind)) {
         throw_Exception( "datatype missing", Here() );
-    } else {
-      config.get( "datatype", datatype_str);
     }
-
-    auto datatype = array::DataType( datatype_str );
+    auto datatype = array::DataType(kind);
 
     std::string name;
     config.get( "name", name );
@@ -108,8 +105,13 @@ Field PointCloud::createField( const eckit::Configuration& config ) const {
 }
 
 Field PointCloud::createField( const Field& other, const eckit::Configuration& config ) const {
-    return createField( option::datatype( other.datatype() ) | option::levels( other.levels() ) |
-                        option::variables( other.variables() ) | config );
+
+    util::Config loc_conf(config);
+    loc_conf.set("datatype",  other.datatype().str());
+    loc_conf.set("levels",  other.levels());
+    loc_conf.set("variables",  other.variables() );
+
+    return createField (loc_conf);
 }
 
 std::string PointCloud::distribution() const {
