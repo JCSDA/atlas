@@ -57,18 +57,15 @@ PointCloud::PointCloud( const Field& lonlat ) : lonlat_( lonlat ) {}
 PointCloud::PointCloud( const Field& lonlat, const Field& ghost ) : lonlat_( lonlat ), ghost_( ghost ) {}
 
 PointCloud::PointCloud( const Grid& grid ) {
-
     lonlat_     = Field( "lonlat", array::make_datatype<double>(), array::make_shape( grid.size(), 2 ) );
     auto lonlat = array::make_view<double, 2>( lonlat_ );
 
     idx_t j{0};
     for ( auto p : grid.lonlat() ) {
-      lonlat( j, 0 ) = p.lon();
-      lonlat( j, 1 ) = p.lat();
-       ++j;
+        lonlat( j, 0 ) = p.lon();
+        lonlat( j, 1 ) = p.lat();
+         ++j;
     }
-
-    std::cout <<  "PointCloud Grid end " << std::endl;
 }
 
 Field PointCloud::ghost() const {
@@ -80,13 +77,11 @@ Field PointCloud::ghost() const {
 }
 
 Field PointCloud::createField( const eckit::Configuration& config ) const {
-    std::cout << "Point Cloud config"  << config << std::endl;
-
     long kind;
-    if (!config.get("datatype", kind)) {
+    if ( !config.get("datatype", kind ) ) {
         throw_Exception( "datatype missing", Here() );
     }
-    auto datatype = array::DataType(kind);
+    auto datatype = array::DataType( kind );
 
     std::string name;
     config.get( "name", name );
@@ -105,13 +100,11 @@ Field PointCloud::createField( const eckit::Configuration& config ) const {
 }
 
 Field PointCloud::createField( const Field& other, const eckit::Configuration& config ) const {
-
-    util::Config loc_conf(config);
-    loc_conf.set("datatype",  other.datatype().kind());
-    loc_conf.set("levels",  other.levels());
-    loc_conf.set("variables",  other.variables() );
-
-    return createField (loc_conf);
+    util::Config loc_conf( config );
+    loc_conf.set( "datatype",  other.datatype().kind() );
+    loc_conf.set( "levels",  other.levels() ) ;
+    loc_conf.set( "variables",  other.variables() );
+    return createField ( loc_conf );
 }
 
 std::string PointCloud::distribution() const {
