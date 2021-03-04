@@ -189,7 +189,8 @@ grid/detail/partitioner/RegularBandsPartitioner.cc
 grid/detail/partitioner/RegularBandsPartitioner.h
 grid/detail/partitioner/SerialPartitioner.cc
 grid/detail/partitioner/SerialPartitioner.h
-
+grid/detail/partitioner/ZonalBoardPartitioner.cc
+grid/detail/partitioner/ZonalBoardPartitioner.h
 
 grid/detail/spacing/Spacing.cc
 grid/detail/spacing/Spacing.h
@@ -670,6 +671,7 @@ util/Polygon.cc
 util/Polygon.h
 util/Rotation.cc
 util/Rotation.h
+util/Spec.h
 util/SphericalPolygon.cc
 util/SphericalPolygon.h
 util/UnitSphere.h
