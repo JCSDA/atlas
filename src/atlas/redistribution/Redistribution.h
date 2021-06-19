@@ -25,7 +25,7 @@ namespace atlas {
 class Redistribution : public util::ObjectHandle<redistribution::detail::RedistributionImpl> {
 public:
     using Handle::Handle;
-
+    Redistribution();
     /// \brief    Constructs and initialises the redistributor.
     ///
     /// \details  Initialises class to copy fields from a source function space
